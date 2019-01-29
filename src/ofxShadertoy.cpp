@@ -19,7 +19,21 @@ ofxShadertoy::~ofxShadertoy() {
     ofRemoveListener(ofEvents().update, this, &ofxShadertoy::update);
 }
 
-bool ofxShadertoy::load(string shaderfilename, bool chan0cube, bool chan1cube, bool chan2cube, bool chan3cube) {
+std::string get_type_string(int type)
+{
+  switch(type)
+  {
+    case 1:
+      return "sampler2DCube";
+    case 2:
+      return "sampler2DRect";
+    default:
+      return "sampler2D";
+  }
+}
+
+bool ofxShadertoy::load(string shaderfilename, int chan0type, int chan1type, int chan2type, int chan3type) {
+
     ofShader currentShader;
     currentShader.setupShaderFromSource(GL_VERTEX_SHADER, string("#version 330\n"
                                                                  "precision mediump float;"
@@ -32,11 +46,17 @@ bool ofxShadertoy::load(string shaderfilename, bool chan0cube, bool chan1cube, b
     ofFile f;
     f.open(shaderfilename);
     ofBuffer b = f.readToBuffer();
+
+    std::string type_string0 = get_type_string(chan0type);
+    std::string type_string1 = get_type_string(chan1type);
+    std::string type_string2 = get_type_string(chan2type);
+    std::string type_string3 = get_type_string(chan3type);
+
     string fragprogram =
         string(
             "#version 330\n"
             "precision mediump float;\n"
-            "vec4 texture2D(sampler2D tex, vec2 coords) { return texture(tex, coords.xy); }\n"
+            "vec4 texture2D(") + type_string0 + " tex, vec2 coords) { return texture(tex, coords.xy); }\n"
             //"vec4 texture2DCube(sampler2DCube tex, vec2 coords) { return texture(tex, coords); }\n"
             "#define texture   texture2D\n"
             "uniform vec3      iResolution;\n"
@@ -48,11 +68,11 @@ bool ofxShadertoy::load(string shaderfilename, bool chan0cube, bool chan1cube, b
             "uniform vec4      iDate;\n"
             "uniform float     iSampleRate;\n"
             "uniform vec3      iChannelResolution[4];\n"
-            "uniform mat4      tCameraMatrix;\n")+
-    string(chan0cube?"uniform sampler2DCube iChannel0;\n":"uniform sampler2D  iChannel0;\n")+
-    string(chan1cube?"uniform sampler2DCube iChannel1;\n":"uniform sampler2D  iChannel1;\n")+
-    string(chan2cube?"uniform sampler2DCube iChannel2;\n":"uniform sampler2D  iChannel2;\n")+
-    string(chan3cube?"uniform sampler2DCube iChannel3;\n":"uniform sampler2D  iChannel3;\n")+
+            "uniform mat4      tCameraMatrix;\n"
+            "uniform " + type_string0 + " iChannel0;\n" +
+            "uniform " + type_string1 + " iChannel1;\n" +
+            "uniform " + type_string2 + " iChannel2;\n" +
+            "uniform " + type_string3 + " iChannel3;\n" +
     b.getText()+
     string("\nout vec4 FragColor;"
            "void main( void )"

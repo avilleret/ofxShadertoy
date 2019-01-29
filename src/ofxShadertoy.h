@@ -22,10 +22,11 @@ public:
     ofxShadertoy();
     virtual ~ofxShadertoy();
     bool load(string shaderfilename,
-              bool chan0cube = false,
-              bool chan1cube = false,
-              bool chan2cube = false,
-              bool chan3cube = false);
+              int chan0cube = 0,
+              int chan1cube = 0,
+              int chan2cube = 0,
+              int chan3cube = 0);
+
     virtual void begin() const;
     virtual void end() const;
     virtual void update(ofEventArgs&);
